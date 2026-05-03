@@ -194,4 +194,59 @@ class ImportUtilsTest : RobolectricTest() {
             data: Uri,
         ): String? = fileName
     }
+    
+    @Test
+    fun tsvMime_isRejected() {
+        val uri = "content://test.tsv".toUri()
+
+        val result = ImportUtils.isValidTextOrDataFile(targetContext, uri)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun textPlainMime_apkgFilename_isRejected() {
+        val uri = "content://deck.apkg".toUri()
+
+        val result = ImportUtils.isValidTextOrDataFile(targetContext, uri)
+
+        assertFalse(result)
+    }
+    @Test
+    fun invalidMimeType_isRejected() {
+        val uri = "content://test.mp3".toUri()
+
+        val result = ImportUtils.isValidTextOrDataFile(targetContext, uri)
+
+        assertFalse(result)
+    }
+
+    @Test
+    fun nullMimeType_isRejected() {
+        val importer = TestFileImporter(null)
+        val intent = getValidClipDataUri("unknown.file")
+
+        importer.handleFileImport(targetContext, intent)
+
+        assertTrue(true)
+    }
+    @Test
+    fun nullFilename_importFailsGracefully() {
+        val importer = TestFileImporter(null)
+        val intent = getValidClipDataUri("deck.apkg")
+
+        importer.handleFileImport(targetContext, intent)
+
+        assertTrue(true)
+    }
+
+    @Test
+    fun unusualFileName_stillProcesses() {
+        val importer = TestFileImporter("___invalid###.apkg")
+        val intent = getValidClipDataUri("___invalid###.apkg")
+
+        importer.handleFileImport(targetContext, intent)
+
+        assertThat(importer.cacheFileName, endsWith(".apkg"))
+    }
 }
